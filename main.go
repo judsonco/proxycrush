@@ -8,7 +8,7 @@ var router *traffic.Router
 
 func init() {
 	router = traffic.New()
-	router.Get("/url", ProxyHandler)
+	router.Get("/proxy", ProxyHandler)
 }
 
 func main() {
