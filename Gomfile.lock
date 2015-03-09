@@ -1,2 +1,0 @@
-gom 'github.com/pilu/traffic', :commit => 'd9032a4073bdf6248724313468822c60dc4ae346'
-gom 'github.com/franela/goreq', :commit => '3a05f653a49ef84042bdb89652bab40122d885e0'

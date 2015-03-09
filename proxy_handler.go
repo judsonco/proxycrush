@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"github.com/franela/goreq"
-	"github.com/pilu/traffic"
+	"github.com/gorilla/mux"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
@@ -14,10 +15,13 @@ type ResponseData struct {
 	Message string
 }
 
-func ProxyHandler(w traffic.ResponseWriter, r *traffic.Request) {
-	url := r.Param("url")
+func ProxyHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	url := params["url"]
 
 	res, _ := goreq.Request{Uri: url}.Do()
+
+	fmt.Println("HERERE")
 
 	// Set the content type to whatever was returned
 	w.Header().Add("Content-Type", res.Header.Get("Content-Type"))
@@ -32,34 +36,49 @@ func ProxyHandler(w traffic.ResponseWriter, r *traffic.Request) {
 }
 
 func jpegcrush(body []byte) []byte {
-	// Create a tmp
-	infile, _ := ioutil.TempFile(os.TempDir(), "proxycrush_")
-	outfile, _ := ioutil.TempFile(os.TempDir(), "proxycrush_")
-
-	infile.Write(body)
-
-	defer os.Remove(infile.Name())
-	defer os.Remove(outfile.Name())
-
 	c := "jpegtran"
 	if os.Getenv("PROXYCRUSH_JPEGTRAN") != "" {
 		c = os.Getenv("PROXYCRUSH_JPEGTRAN")
 	}
 
-	o, _ := exec.Command(
+	cmd := exec.Command(
 		c,
-		"-outfile",
-		outfile.Name(),
 		"-optimize",
 		"-progressive",
 		"-copy",
 		"none",
-		infile.Name(),
-	).CombinedOutput()
+	)
 
-	fmt.Println(string(o))
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	b, _ := ioutil.ReadFile(outfile.Name())
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	return b
+	if err = cmd.Start(); err != nil {
+		fmt.Println(err)
+	}
+
+	if _, err := stdin.Write(body); err != nil {
+		fmt.Println(err)
+	}
+
+	if err = stdin.Close(); err != nil {
+		fmt.Println(err)
+	}
+
+	o, err := ioutil.ReadAll(stdout)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if err = cmd.Wait(); err != nil {
+		fmt.Println(err)
+	}
+
+	return o
 }
