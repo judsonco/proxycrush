@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	"net/http/fcgi"
+	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 )
@@ -24,6 +26,10 @@ func main() {
 	flag.Parse()
 	var err error
 
+	// Handle common process-killing signals so we can gracefully shut down:
+	sigc := make(chan os.Signal, 1)
+	signal.Notify(sigc, os.Interrupt, os.Kill)
+
 	switch {
 	case strings.HasPrefix(*listen, "unix:"):
 		listener, err := net.Listen("unix", strings.Replace(*listen, "unix:", "", 1))
@@ -32,6 +38,13 @@ func main() {
 		}
 		defer listener.Close()
 
+		go func(c chan os.Signal) {
+			sig := <-c
+			log.Printf("Caught signal %s: shutting down.", sig)
+			listener.Close()
+			os.Exit(0)
+		}(sigc)
+
 		err = fcgi.Serve(listener, r)
 	case *listen != "":
 		listener, err := net.Listen("tcp", *listen)
@@ -39,6 +52,12 @@ func main() {
 			log.Fatal(err)
 		}
 		defer listener.Close()
+		go func(c chan os.Signal) {
+			sig := <-c
+			log.Printf("Caught signal %s: shutting down.", sig)
+			listener.Close()
+			os.Exit(0)
+		}(sigc)
 
 		err = fcgi.Serve(listener, r)
 	default:
