@@ -24,7 +24,10 @@ func ProxyHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) 
 
 	// Set the content type to whatever was returned
 	w.Header().Add("Content-Type", res.Header.Get("Content-Type"))
-	body, _ := ioutil.ReadAll(res.Body)
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		log.Print(err)
+	}
 
 	switch strings.ToLower(res.Header.Get("Content-Type")) {
 	case "image/jpeg":
