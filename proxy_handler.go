@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"github.com/franela/goreq"
 	"github.com/julienschmidt/httprouter"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -50,33 +50,33 @@ func jpegcrush(body []byte) []byte {
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		fmt.Println(err)
+		log.Print(err)
 	}
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Println(err)
+		log.Print(err)
 	}
 
 	if err = cmd.Start(); err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	if _, err := stdin.Write(body); err != nil {
-		fmt.Println(err)
+		log.Print(err)
 	}
 
 	if err = stdin.Close(); err != nil {
-		fmt.Println(err)
+		log.Print(err)
 	}
 
 	o, err := ioutil.ReadAll(stdout)
 	if err != nil {
-		fmt.Println(err)
+		log.Print(err)
 	}
 
 	if err = cmd.Wait(); err != nil {
-		fmt.Println(err)
+		log.Print(err)
 	}
 
 	return o
