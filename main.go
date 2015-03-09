@@ -60,8 +60,6 @@ func main() {
 		}(sigc)
 
 		err = fcgi.Serve(listener, r)
-	default:
-		err = fcgi.Serve(nil, r)
 	}
 
 	if err != nil {
