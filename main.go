@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"log"
 	"net"
 	"net/http/fcgi"
@@ -19,9 +19,8 @@ func init() {
 }
 
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", ProxyHandler)
-
+	r := httprouter.New()
+	r.GET("/", ProxyHandler)
 	flag.Parse()
 	var err error
 

@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/franela/goreq"
-	"github.com/gorilla/mux"
+	"github.com/julienschmidt/httprouter"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -15,13 +15,12 @@ type ResponseData struct {
 	Message string
 }
 
-func ProxyHandler(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	url := params["url"]
-
-	res, _ := goreq.Request{Uri: url}.Do()
-
-	fmt.Println("HERERE")
+func ProxyHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	url := r.FormValue("url")
+	res, err := goreq.Request{Uri: url}.Do()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Set the content type to whatever was returned
 	w.Header().Add("Content-Type", res.Header.Get("Content-Type"))

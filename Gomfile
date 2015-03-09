@@ -1,2 +1,2 @@
-gom 'github.com/gorilla/mux'
+gom 'github.com/julienschmidt/httprouter'
 gom 'github.com/franela/goreq'
